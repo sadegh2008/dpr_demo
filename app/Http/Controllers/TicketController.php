@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Criteria\WaitForDeleteCriteria;
 use App\Jobs\TicketProcess;
 use App\Repositories\TicketMessageRepository;
 use App\Traits\TraitBaseController;
@@ -33,7 +34,7 @@ class TicketController extends Controller
 
     public function _index ($filters, $view) {
         $this->repository->pushCriteria(app('Prettus\Repository\Criteria\RequestCriteria'));
-        $result = $this->repository->with(['creator'])->findWhere($filters)->all();
+        $result = $this->repository->with(['creator'])->paginate(10);
 
         if (request()->wantsJson()) {
 
@@ -50,6 +51,8 @@ class TicketController extends Controller
     }
 
     public function waitForDestroy () {
+        $this->repository->pushCriteria(WaitForDeleteCriteria::class);
+
         return $this->_index(['delete_status' => 'wait'], 'tickets.wait_for_destroy');
     }
 
@@ -82,7 +85,7 @@ class TicketController extends Controller
                     return response()->json($response);
                 }
 
-                return redirect()->back()->with('message', $response['message']);
+                return redirect(route('tickets.index'));
             });
         } catch (ValidatorException $e) {
             if ($request->wantsJson()) {
