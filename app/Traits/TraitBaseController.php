@@ -48,7 +48,7 @@ trait TraitBaseController
     public function index()
     {
         $this->repository->pushCriteria(app('Prettus\Repository\Criteria\RequestCriteria'));
-        $result = $this->repository->all();
+        $result = $this->repository->paginate();
 
         if (request()->wantsJson()) {
 
